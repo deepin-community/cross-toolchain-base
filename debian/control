@@ -5,15 +5,15 @@ Maintainer: Cross Toolchain Base Team <cross-toolchain-base-devs@lists.launchpad
 Uploaders: Matthias Klose <doko@debian.org>, Dimitri John Ledkov <xnox@debian.org>
 Vcs-Browser: https://salsa.debian.org/toolchain-team/cross-toolchain-base
 Vcs-Git: https://salsa.debian.org/toolchain-team/cross-toolchain-base.git
-Standards-Version: 4.5.1
+Standards-Version: 4.6.1
 Build-Depends: binutils-multiarch,
-  dpkg (>= 1.16.0~ubuntu6), rdfind, symlinks, lsb-release,
-  binutils-source (>= 2.37-4~),
-  glibc-source (>= 2.32-1~),
-  gcc-10-source (>= 10.3.0-7~),
-  linux-source (>= 5.10.13), linux-libc-dev (>= 5.10.13),
+  dpkg (>= 1.21.17), rdfind, symlinks, lsb-release,
+  binutils-source (>= 2.38-deepin),
+  glibc-source (>= 2.37-3~),
+  gcc-13-source (>= 13.2.0-3~),
+  linux-source-5.10 (>= 5.10.158), linux-libc-dev (>= 5.10.158),
   autoconf (>= 2.69), autoconf2.69, autogen,
-  automake, bison (>= 1:2.3), chrpath, debhelper (>= 9),
+  automake, bison (>= 1:2.3), chrpath, debhelper-compat (= 13),
   dpkg-dev (>= 1.15.3.1), fakeroot, file, flex,
   dwz, debugedit (>= 4.16), gawk, gettext, gperf (>= 3.0.1), kernel-wedge (>= 2.24),
   libisl-dev, libmpc-dev, libelf-dev,
@@ -23,12 +23,12 @@ Build-Depends: binutils-multiarch,
   sed (>= 4.0.5-4), sharutils, tar (>= 1.22), xz-utils,
   asciidoc, texinfo, cpio, python3, bc, time,
   libconfig-auto-perl, libfile-temp-perl, libconfig-auto-perl,
-  libfile-homedir-perl, liblocale-gettext-perl, libunwind-dev [amd64 i386 x32]
+  libfile-homedir-perl, liblocale-gettext-perl, libunwind-dev [amd64 i386 x32],
+  libjansson-dev, pkg-config,
 Build-Conflicts: dpkg-cross, libdebian-dpkgcross-perl,
   binutils-x86-64-linux-gnu [!amd64], binutils-i686-linux-gnu [!i386], binutils-s390x-linux-gnu [!s390x], binutils-powerpc64le-linux-gnu [!ppc64el], binutils-aarch64-linux-gnu [!arm64], binutils-arm-linux-gnueabihf [!armhf], binutils-arm-linux-gnueabi [!armel],
   libc6-amd64-cross, linux-libc-dev-amd64-cross, libc6-i386-cross, linux-libc-dev-i386-cross, libc6-s390x-cross, linux-libc-dev-s390x-cross, libc6-ppc64el-cross, linux-libc-dev-ppc64el-cross, libc6-arm64-cross, linux-libc-dev-arm64-cross, libc6-armhf-cross, linux-libc-dev-armhf-cross, libc6-armel-cross, linux-libc-dev-armel-cross,
   libc6-amd64 [i386 x32], libc6-i386 [amd64 x32], libc6-x32 [amd64 i386]
-XS-Testsuite: autopkgtest
 
 Package: linux-libc-dev-amd64-cross
 Architecture: all
