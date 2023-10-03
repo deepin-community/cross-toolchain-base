@@ -1,3 +1,94 @@
+cross-toolchain-base (67deepin1) unstable; urgency=medium
+
+  * Build using gcc 13.2.0-3.
+  * Build using linux 5.10.158.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Tue, 03 Oct 2023 14:23:50 +0800
+
+cross-toolchain-base (67) unstable; urgency=medium
+
+  * Build using glibc 2.37-3.
+  * Build using binutils 2.40.50.20230630-1.
+  * Build using linux 6.3.7.
+  * Build using gcc 12.3.0-5.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 01 Jul 2023 17:14:13 +0200
+
+cross-toolchain-base (66) unstable; urgency=medium
+
+  * Build using glibc 2.36-8.
+  * Build using binutils 2.40-2.
+  * Build using linux 6.1.4.
+  * Build using gcc 12.2.0-14.
+
+ -- Matthias Klose <doko@debian.org>  Sun, 15 Jan 2023 16:27:05 +0100
+
+cross-toolchain-base (65) unstable; urgency=medium
+
+  * Build using glibc 2.36-7.
+  * Build using linux 6.0.12.
+  * Add new build dependencies for binutils.
+  * Add build dependency on dpkg (>= 1.21.17).
+
+ -- Matthias Klose <doko@debian.org>  Fri, 06 Jan 2023 10:14:35 +0100
+
+cross-toolchain-base (62) unstable; urgency=medium
+
+  * Build using glibc 2.36-3.
+  * Build using linux 6.0.5.
+  * Work around dpkg-cross misbehaving with glibc 2.35 to rewrite
+    .so files for non-default multilib packages. See #1018758.
+  * Remove glibc stage1 and gcc stage2 (Helmut Grohne). Closes: #956855.
+  * Remove the support to build ARM32 soft-float/hard-float multilibs.
+  * Update copyright years.
+  * Merge the support to build packages for arc-linux-gnu.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 01 Nov 2022 17:31:55 +0100
+
+cross-toolchain-base (61) unstable; urgency=medium
+
+  * Build using glibc 2.35-1.
+  * Build using linux 5.19.6.
+  * Bump standards version.
+  * Update d/p/glibc/debian/no-libaudit.diff for glibc 2.34-5.
+  * Work around dpkg-cross handling the versioned ld.so symlinks.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 23 Sep 2022 14:02:02 +0200
+
+cross-toolchain-base (60) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Bump debhelper from deprecated 9 to 13.
+  * Set debhelper-compat version in Build-Depends.
+  * Remove unnecessary XS-Testsuite field in debian/control.
+
+  [ Bastien Roucariès ]
+  * Build using gcc 11.3.0-5
+  * Bug fix: "FTBFS: configure: error: cannot compute suffix of object
+    files: cannot compile", thanks to Lucas Nussbaum (Closes: #1017213).
+
+  [ Dimitri John Ledkov ]
+  * debian/tests/control: switch static build-depends list to @builddeps@
+    macro.
+  * Switch to exact linux-source-$VER dependency.
+  * Update ubuntu patches for glibc 2.36.
+  * Drop unused CROSS_* substitutions from debian/rules control target
+    that generating warnings and errors.
+  * Update package versions for Debian and Ubuntu. (Closes: #1016829).
+  * Build using glibc 2.34-3.
+  * Build using linux 5.18.16.
+
+ -- Dimitri John Ledkov <dimitri.ledkov@canonical.com>  Tue, 16 Aug 2022 13:17:09 +0100
+
+cross-toolchain-base (59) unstable; urgency=medium
+
+  * Build using glibc 2.33-1.
+  * Build using linux 5.15.5.
+  * Build using gcc 10.3.0-7.
+  * Build using binutils 2.37-10.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 13 Dec 2021 10:43:12 +0100
+
 cross-toolchain-base (58) unstable; urgency=medium
 
   * Build without libaudit.
