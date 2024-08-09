@@ -1,3 +1,12 @@
+cross-toolchain-base (70deepin1) unstable; urgency=medium
+
+  * Build using binutils 2.41-6.
+  * Build using gcc 12.3.0-17.
+  * Build using glibc 2.38-6.
+  * Build using linux 6.5.10.
+
+ -- Tianyu Chen <sweetyfish@deepin.org>  Fri, 09 Aug 2024 14:39:51 +0800
+
 cross-toolchain-base (70) unstable; urgency=medium
 
   * Build using glibc 2.39-4.
