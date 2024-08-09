@@ -74,11 +74,11 @@ ifeq (,$(ELF_PACKAGE_METADATA))
   export ELF_PACKAGE_METADATA
 endif
 
-MIN_VER_GLIBC		:= 2.39-4~
-MIN_VER_LINUX		:= 6.9.9
-MIN_VER_GCC		:= 13.3.0-3~
-MIN_VER_BINUTILS	:= 2.42-4~
-VER_GCC_BASE		:= 13
+MIN_VER_GLIBC		:= 2.38-6~
+MIN_VER_LINUX		:= 6.5.10
+MIN_VER_GCC		:= 12.3.0-17~
+MIN_VER_BINUTILS	:= 2.41-6~
+VER_GCC_BASE		:= 12
 libgcc_base		:= gcc-s
 
 DEB_VER_LINUX  := $(shell apt-cache policy linux-libc-dev | awk '/^ \*\*\*/ {print $$2}')
