@@ -45,10 +45,10 @@ ifeq ($(DEB_NAME_ACT),cross-toolchain-base-mipsen)
 endif
 
 ifeq ($(DEB_NAME_ACT),cross-toolchain-base)
-  CROSS_ARCHS	?= amd64 i386 s390x ppc64el arm64 armhf armel riscv64 loong64 \
+  CROSS_ARCHS	?= amd64 i386 s390x ppc64el arm64 armhf riscv64 \
 			$(if $(filter $(vendor), Ubuntu), powerpc)
 else ifeq ($(DEB_NAME_ACT),cross-toolchain-base-ports)
-  CROSS_ARCHS  ?= alpha arc hppa loong64 m68k ppc64 sh4 sparc64 x32 \
+  CROSS_ARCHS  ?= alpha arc armel hppa loong64 m68k ppc64 sh4 sparc64 x32 \
 			$(if $(filter $(vendor), Ubuntu),, powerpc)
 else # -mipsen
   CROSS_ARCHS  ?= mips mipsel mips64el mips64 mipsn32 mipsn32el \
@@ -74,20 +74,20 @@ ifeq (,$(ELF_PACKAGE_METADATA))
   export ELF_PACKAGE_METADATA
 endif
 
-MIN_VER_GLIBC		:= 2.38-6~
-MIN_VER_LINUX		:= 6.5.10
-MIN_VER_GCC		:= 12.3.0-17~
-MIN_VER_BINUTILS	:= 2.41-6~
-VER_GCC_BASE		:= 12
+MIN_VER_GLIBC		:= 2.42-10~
+MIN_VER_LINUX		:= 6.18.5-1~
+MIN_VER_GCC		:= 15.2.0-12~
+MIN_VER_BINUTILS	:= 2.45.50.20260119-1~
+VER_GCC_BASE		:= 15
 libgcc_base		:= gcc-s
 
-DEB_VER_LINUX  := $(shell apt-cache policy linux-libc-dev | awk '/^ \*\*\*/ {print $$2}')
+DEB_VER_LINUX  := $(shell dpkg-query -W -f '$${Version}' linux-libc-dev)
 ifeq ($(vendor),Ubuntu)
-  MIN_VER_GLIBC	:= 2.39-0~
-  MIN_VER_LINUX	:= 6.8.0
-  MIN_VER_GCC		:= 13.3.0-3~
-  MIN_VER_BINUTILS	:= 2.42-4~
-  VER_GCC_BASE		:= 13
+  MIN_VER_GLIBC		:= 2.42-0~
+  MIN_VER_LINUX		:= 6.17.0
+  MIN_VER_GCC		:= 15.2.0-4~
+  MIN_VER_BINUTILS	:= 2.45-7~
+  VER_GCC_BASE		:= 15
   libgcc_base		:= gcc-s
 endif
 ifeq ($(vendor),Ubuntu)
@@ -101,7 +101,7 @@ DEB_VER_GCC      := $(shell dpkg-parsechangelog -SVersion -l/usr/src/gcc-${VER_G
 VER_BINUTILS     := $(shell dpkg-parsechangelog -SVersion -l/usr/src/binutils/debian/changelog | cut -f 1 -d '-'|cut -d '.' -f1-3)
 PKG_VER_BINUTILS := $(shell dpkg-parsechangelog -SVersion -l/usr/src/binutils/debian/changelog | cut -f 1 -d '-')
 DEB_VER_BINUTILS := $(shell dpkg-parsechangelog -SVersion -l/usr/src/binutils/debian/changelog)
-VER_GLIBC        := $(shell dpkg-parsechangelog -SVersion -l/usr/src/glibc/debian/changelog | cut -f 1 -d '-')
+VER_GLIBC        := $(shell dpkg-parsechangelog -SVersion -l/usr/src/glibc/debian/changelog | sed 's/-[^-]*$$//')
 DEB_VER_GLIBC    := $(shell dpkg-parsechangelog -SVersion -l/usr/src/glibc/debian/changelog)
 
 LINUX_BUILT_USING := linux (= $(shell echo $(DEB_VER_LINUX) | sed 's/+.*$$//'))
@@ -124,7 +124,6 @@ binutils_ldpath = $(shell if dpkg --compare-versions $(VER_BINUTILS) lt 2.25.51;
 # FIXME: No conflict for the host == cross case ...
 BINUTILS_BUILD_CONFLICTS = $(foreach a,$(CROSS_ARCHS),binutils-$(subst _,-,$(call _gnu_type,$(a))) [!$(a)]$(,))
 GLIBC_BUILD_CONFLICTS = $(foreach a,$(CROSS_ARCHS),libc6-$(a)-cross$(,) linux-libc-dev-$(a)-cross$(,))
-GLIBC_BUILD_CONFLICTS = $(foreach a,$(CROSS_ARCHS),libc6-$(a)-cross$(,))
 
 # taken from gcc packaging
 define unpack_tarball
@@ -158,7 +157,7 @@ init: $(stamp)init-linux
 
 $(stamp)init-linux:
 	@echo START $@
-	rm -rf linux-source-[45].*
+	rm -rf linux-source-[45678].*
 	$(call unpack_tarball, $(firstword $(wildcard /usr/src/linux-source-$(VER_LINUX).tar.* /usr/src/linux-source-$(VER_LINUX)/linux-source-$(VER_LINUX).tar.*)))
 	touch $@
 
@@ -225,6 +224,7 @@ $(stamp)build-binutils: $(stamp)init-binutils
 	  PATCHED_SOURCES=yes \
 	  PKG_IGNORE_CURRENTLY_BUILDING=1 \
 	  BACKPORT=false \
+	  DEB_BUILD_PROFILES="$(DEB_BUILD_PROFILES) pkg.binutils.nojava" \
 	  DEB_BUILD_OPTIONS="$(DEB_BUILD_OPTIONS) nocheck nomult nohppa nopgo" \
 	  CROSS_ARCHS="$(CROSS_ARCHS)" \
 	  dpkg-buildpackage -B -uc -us -d
@@ -301,7 +301,7 @@ $(stamp)install-gcc1.%: $(stamp)build-gcc1.%
 	  debian/tmp.${CROSS_ARCH}/$(PF)/lib/gcc-cross/${CROSS_GNU_TYPE}/${VER_GCC_BASE}/
 	cp -r gcc/build/gcc/include-fixed \
 	  debian/tmp.${CROSS_ARCH}/$(PF)/lib/gcc-cross/${CROSS_GNU_TYPE}/${VER_GCC_BASE}/
-	$(if $(filter $(CROSS_ARCH),amd64 ppc64 s390x sparc64 x32), \
+	$(if $(filter $(CROSS_ARCH),amd64 ppc64 $(if $(filter $(vendor), Ubuntu),,s390x) sparc64 x32), \
 	  dpkg-deb -x lib32gcc-${VER_GCC_BASE}-dev-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
 		debian/tmp.${CROSS_ARCH} \
 	)
@@ -343,6 +343,82 @@ define install_gcc
 	  ln -sf ${CROSS_GNU_TYPE}-gcov-${VER_GCC_BASE} ${CROSS_GNU_TYPE}-gcov
 endef
 
+$(stamp)build-gcc2.%: $(stamp)init-gcc $(stamp)install-glibc1.%
+	@echo START $@
+	cd debian/tmp.${CROSS_ARCH}/$(PF)/bin/ && \
+	  rm -f ${CROSS_GNU_TYPE}-gcc-${VER_GCC_BASE} ${CROSS_GNU_TYPE}-gcc && \
+	  rm -f ${CROSS_GNU_TYPE}-cpp-${VER_GCC_BASE} ${CROSS_GNU_TYPE}-cpp && \
+	  rm -f ${CROSS_GNU_TYPE}-gcov-${VER_GCC_BASE} ${CROSS_GNU_TYPE}-gcov
+	cd gcc && \
+	  PATH=${CURDIR}/debian/tmp.${CROSS_ARCH}/$(PF)/bin:${PATH} \
+	  LD_LIBRARY_PATH=$(call binutils_ldpath,$*):${CURDIR}/debian/tmp.${CROSS_ARCH}/usr/lib:${CURDIR}/debian/tmp.${CROSS_ARCH}/lib \
+	  DH_VERBOSE=1 \
+	  WITH_SYSROOT=/ \
+	  WITH_BUILD_SYSROOT=${CURDIR}/debian/tmp.${CROSS_ARCH} \
+	  DEB_STAGE=stage2 \
+	  PKG_IGNORE_CURRENTLY_BUILDING=1 \
+	  BACKPORT=false \
+	  DEB_BUILD_OPTIONS="$(DEB_BUILD_OPTIONS) nocheck nopgo nolto nohppa64 nojit nonvptx" \
+	  WITHOUT_LANG="hppa64 jit nvptx" \
+	  $(if $(filter $(HOST_ARCH),$(CROSS_ARCH)),FORCE_CROSS_LAYOUT=yes WITH_BOOTSTRAP=off) \
+	  dpkg-buildpackage -b -uc -us -d
+	touch $@
+
+$(stamp)install-gcc2.%: $(stamp)build-gcc2.%
+	@echo START $@
+	$(call install_gcc)
+	dpkg-deb -x lib$(libgcc_base)[124]-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}
+	$(if $(filter $(CROSS_ARCH),amd64 ppc64 $(if $(filter $(vendor), Ubuntu),,s390x) sparc64 x32), \
+	  dpkg-deb -x lib32gcc1-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x lib32gcc-${VER_GCC_BASE}-dev-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),i386 powerpc x32), \
+	  dpkg-deb -x lib64gcc1-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x lib64gcc-${VER_GCC_BASE}-dev-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),amd64 i386), \
+	  dpkg-deb -x libx32gcc1-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libx32gcc-${VER_GCC_BASE}-dev-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),mips mipsel mipsr6 mipsr6el), \
+	  dpkg-deb -x lib64gcc1-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x lib64gcc-${VER_GCC_BASE}-dev-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libn32gcc1-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libn32gcc-${VER_GCC_BASE}-dev-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),mipsn32 mipsn32el mipsn32r6 mipsn32r6el), \
+	  dpkg-deb -x lib64gcc1-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x lib64gcc-${VER_GCC_BASE}-dev-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x lib32gcc1-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x lib32gcc-${VER_GCC_BASE}-dev-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),mips64 mips64el mips64r6 mips64r6el), \
+	  dpkg-deb -x lib32gcc1-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x lib32gcc-${VER_GCC_BASE}-dev-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libn32gcc1-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libn32gcc-${VER_GCC_BASE}-dev-${CROSS_ARCH}-cross_${DEB_VER_GCC}_all.deb \
+		debian/tmp.${CROSS_ARCH} \
+	)
+	touch $@
+
 $(stamp)build-gcc3.%: $(stamp)init-gcc $(stamp)install-glibc2.%
 	@echo START $@
 	cd debian/tmp.${CROSS_ARCH}/$(PF)/bin/ && \
@@ -378,7 +454,80 @@ $(stamp)init-glibc:
 #	fi
 	touch $@
 
-$(stamp)build-glibc2.%: $(stamp)init-glibc $(stamp)install-gcc1.% $(stamp)install-linux.%
+$(stamp)build-glibc1.%: $(stamp)init-glibc $(stamp)install-linux.% $(stamp)install-gcc1.%
+	@echo START $@
+# FIXME: why debian/libgcc1-armel-cross?
+	cd glibc-${VER_GLIBC} && \
+	  PATH=${CURDIR}/debian/tmp.${CROSS_ARCH}/$(PF)/bin/:${PATH} \
+	  LD_LIBRARY_PATH=$(call binutils_ldpath,$*):${CURDIR}/gcc/debian/lib$(libgcc_base)1-armel-cross/usr/${CROSS_GNU_TYPE}/lib/ \
+	  LINUX_SOURCE=${CURDIR}/debian/tmp.${CROSS_ARCH}/usr \
+	  PATCHED_SOURCES=yes \
+	  WITH_BUILD_SYSROOT=${CURDIR}/debian/tmp.${CROSS_ARCH} \
+	  DEB_BUILD_PROFILES=stage1 \
+	  PKG_IGNORE_CURRENTLY_BUILDING=1 \
+	  BACKPORT=false \
+	  DEB_BUILD_OPTIONS="$(DEB_BUILD_OPTIONS) nocheck" \
+	  CTB_LIBC_DEV_DEPENDS='$(CTB_LIBC_DEV_DEPENDS)' \
+	  DEB_GCC_VERSION='-$(VER_GCC_BASE)' DEB_CFLAGS_APPEND='-Wno-error' \
+	  fakeroot dpkg-buildpackage -B -uc -us -a${CROSS_ARCH} -d -Pstage1
+	touch $@
+
+$(stamp)install-glibc1.%: $(stamp)build-glibc1.%
+	@echo START $@
+	$(if $(filter $(CROSS_ARCH),alpha ia64), \
+	  dpkg-deb -x libc6.1-dev_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH}, \
+	  dpkg-deb -x libc6-dev_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	)
+
+	$(if $(filter $(CROSS_ARCH),ppc64), \
+	  dpkg-deb -x libc6-dev-powerpc_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(vendor), Ubuntu),, \
+	$(if $(filter $(CROSS_ARCH),s390x), \
+	  dpkg-deb -x libc6-dev-s390_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	))
+	$(if $(filter $(CROSS_ARCH),sparc64), \
+	  dpkg-deb -x libc6-dev-sparc_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),powerpc), \
+	  dpkg-deb -x libc6-dev-ppc64_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),mips mipsel mipsr6 mipsr6el), \
+	  dpkg-deb -x libc6-dev-mips64_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libc6-dev-mipsn32_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),mipsn32 mipsn32el mipsn32r6 mipsn32r6el), \
+	  dpkg-deb -x libc6-dev-mips64_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libc6-dev-mips32_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),mips64 mips64el mips64r6 mips64r6el), \
+	  dpkg-deb -x libc6-dev-mips32_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libc6-dev-mipsn32_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),amd64), \
+	  dpkg-deb -x libc6-dev-i386_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libc6-dev-x32_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),i386), \
+	  dpkg-deb -x libc6-dev-amd64_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libc6-dev-x32_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	)
+	$(if $(filter $(CROSS_ARCH),x32), \
+	  dpkg-deb -x libc6-dev-amd64_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH}; \
+	  dpkg-deb -x libc6-dev-i386_${DEB_VER_GLIBC}_${CROSS_ARCH}.deb debian/tmp.${CROSS_ARCH} \
+	)
+	: # FIXME: why is this needed?
+	cd debian/tmp.${CROSS_ARCH}/usr/lib ;\
+	for crt in ${CROSS_GNU_TYPE}/crt*; do \
+		ln -sf $$crt `basename $$crt`; \
+	done
+	: # dpkg-shlibdeps for the stage2 gcc needs these
+	for d in $$(find debian/tmp.${CROSS_ARCH}/usr/lib -name libc.so -printf '%h\n'); do \
+	  ln -sf libc.so $$d/libc.so.6; \
+	done
+	touch $@
+
+$(stamp)build-glibc2.%: $(stamp)init-glibc $(stamp)install-gcc2.%
 	@echo START $@
 # FIXME: why debian/libgcc1-armel-cross?
 	cd glibc-${VER_GLIBC} && \
@@ -393,9 +542,8 @@ $(stamp)build-glibc2.%: $(stamp)init-glibc $(stamp)install-gcc1.% $(stamp)instal
 	  BACKPORT=false \
 	  DEB_BUILD_OPTIONS="$(DEB_BUILD_OPTIONS) nocheck" \
 	  CTB_LIBC_DEV_DEPENDS='$(CTB_LIBC_DEV_DEPENDS)' \
+	  DEB_GCC_VERSION='-$(VER_GCC_BASE)' DEB_CFLAGS_APPEND='-Wno-error' \
 	  fakeroot dpkg-buildpackage -B -uc -us -a${CROSS_ARCH} -d -Pstage2
-	: # FIXME: a libc6.1-alphaev67 package is built on alpha
-	$(if $(filter $(CROSS_ARCH),alpha),  rm -f libc6.1-alphaev67*.deb)
 	touch $@
 
 $(stamp)install-glibc2.%: $(stamp)build-glibc2.%
@@ -440,10 +588,12 @@ ifneq (,$(filter ppc64, $(CROSS_ARCHS)))
 	libc6-powerpc-ppc64-cross_${VER_GLIBC}-*_all.deb \
 	libc6-dev-powerpc-ppc64-cross_${VER_GLIBC}-*_all.deb
 endif
+ifneq ($(vendor),Ubuntu)
 ifneq (,$(filter s390x, $(CROSS_ARCHS)))
   DEB_LIST_MANGLED += \
 	libc6-s390-s390x-cross_${VER_GLIBC}-*_all.deb \
 	libc6-dev-s390-s390x-cross_${VER_GLIBC}-*_all.deb
+endif
 endif
 ifneq (,$(filter sparc64, $(CROSS_ARCHS)))
   DEB_LIST_MANGLED += \
@@ -666,6 +816,13 @@ $(stamp)repack-%:
 	      $$tmp/usr/*/lib32/libc.so;; \
 	esac; \
 	case "$$pkgname" in \
+	  libc6-dev-mips32-*-cross) \
+	    sed -i \
+	      -e 's,/lib[^/]*/ld-linux-mipsn8.so.1,/libo32/ld-linux-mipsn8.so.1,' \
+	      -e 's,/lib[^/]*/ld.so.1,/libo32/ld.so.1,' \
+	      $$tmp/usr/*/libo32/libc.so;; \
+	esac; \
+	case "$$pkgname" in \
 	  libc6-dev-powerpc-ppc64-cross|libc6-dev-sparc-sparc64-cross|libc6-dev-i386-x32-cross|libc6-dev-s390-s390x-cross|libc6-dev-i386-amd64-cross|libc6-dev-i386-x32-cross) \
 	    triplet="$$(basename $$(dirname $$(echo $$tmp/usr/*/lib32)))"; \
 	    sed -i -e 's,//,/,g' \
@@ -789,8 +946,7 @@ $(stamp)repack-%:
 	      || echo 'Multi-Arch: foreign' >> $$tmp/DEBIAN/control; \
 	esac; \
 	case "$$pkgname" in \
-	  libc*-dev*-cross) ;; \
-	  libc*-cross) \
+	  libc*-cross|libc*-dev*-cross) \
 	    sed -i -E '/^Conflicts:/s/ libc[^,]*(,|$$)//g;/^Conflicts: *$$/d' $$tmp/DEBIAN/control; \
 	esac; \
 	newdeb=`echo $$deb|sed -e "s/\(.*\)_\(.*\)_\(.*\)/\1_\2$(CROSS_EXT)_\3/g"`; \
@@ -816,10 +972,11 @@ $(stamp)repack-debs-indep: $(stamp)dpkg-cross
 		libc6-powerpc-ppc64-cross_${DEB_VER_GLIBC}_all.deb \
 		libc6-dev-powerpc-ppc64-cross_${DEB_VER_GLIBC}_all.deb \
 	    ) \
+	    $(if $(filter $(vendor), Ubuntu),, \
 	    $(if $(filter s390x, $(CROSS_ARCHS)), \
 		libc6-s390-s390x-cross_${DEB_VER_GLIBC}_all.deb \
 		libc6-dev-s390-s390x-cross_${DEB_VER_GLIBC}_all.deb \
-	    ) \
+	    )) \
 	    $(if $(filter sparc64, $(CROSS_ARCHS)), \
 		libc6-sparc-sparc64-cross_${DEB_VER_GLIBC}_all.deb \
 		libc6-dev-sparc-sparc64-cross_${DEB_VER_GLIBC}_all.deb \
@@ -1154,8 +1311,12 @@ endif
 	$(stamp)init-gcc \
 	$(stamp)build-gcc1.% \
 	$(stamp)install-gcc1.% \
+	$(stamp)build-gcc2.% \
+	$(stamp)install-gcc2.% \
 	$(stamp)build-gcc3.% \
 	$(stamp)init-glibc \
+	$(stamp)build-glibc1.% \
+	$(stamp)install-glibc1.% \
 	$(stamp)build-glibc2.% \
 	$(stamp)install-glibc2.% \
 	$(stamp)debian-files-base \
