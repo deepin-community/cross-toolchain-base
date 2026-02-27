@@ -1,11 +1,114 @@
-cross-toolchain-base (70deepin1) unstable; urgency=medium
+cross-toolchain-base (79deepin2) unstable; urgency=medium
 
-  * Build using binutils 2.41-6.
-  * Build using gcc 12.3.0-17.
-  * Build using glibc 2.38-6.
-  * Build using linux 6.5.10.
+  * add loong64 cross target
 
- -- Tianyu Chen <sweetyfish@deepin.org>  Fri, 09 Aug 2024 14:39:51 +0800
+ -- Chang Yang <yangchang@deepin.org>  Fri, 27 Feb 2026 10:48:32 +0800
+
+cross-toolchain-base (79deepin1) unstable; urgency=medium
+
+  * change toolchain version to deepin baseline
+
+ -- Chang Yang <yangchang@deepin.org>  Thu, 26 Feb 2026 17:47:03 +0800
+
+cross-toolchain-base (79) unstable; urgency=medium
+
+  * Build using glibc 2.42-10.
+  * Build using linux 6.18.5. Closes: #1125259.
+  * Build using gcc 15.2.0-12.
+  * Build using binutils 2.45.50.20260119-1.
+  * Remove conflicts to the libc*-dev*-cross packages (Aurelien Jarno).
+    Closes: #1100747.
+  * Remove the remove-multilib-conflicts patch. Closes: #1124155.
+
+ -- Matthias Klose <doko@debian.org>  Wed, 21 Jan 2026 11:46:06 +0100
+
+cross-toolchain-base (78) unstable; urgency=medium
+
+  * Build using glibc 2.42-4.
+  * Build using linux 6.17.10. Closes: #1115572.
+  * Bump standards version.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 05 Dec 2025 11:39:09 +0100
+
+cross-toolchain-base (77) unstable; urgency=medium
+
+  * Build using glibc 2.41-11.
+  * Build using linux 6.12.38.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 29 Jul 2025 10:50:17 +0200
+
+cross-toolchain-base (76) unstable; urgency=medium
+
+  * Fix typo for the dpkg-query fix in last upload.
+
+ -- Matthias Klose <doko@debian.org>  Mon, 19 May 2025 19:41:33 +0200
+
+cross-toolchain-base (75) unstable; urgency=medium
+
+  * Build using gcc 14.2.0-19.
+  * Build using glibc 2.41-8.
+  * Build using linux 6.12.27.
+  * d/rules: Use dpkg-query instead of apt-cache. Closes: #1103563.
+
+ -- Matthias Klose <doko@debian.org>  Sun, 18 May 2025 12:39:35 +0200
+
+cross-toolchain-base (74) unstable; urgency=medium
+
+  * Build using gcc 14.2.0-18.
+  * Build using glibc 2.41-6.
+  * Refresh glibc patches.
+  * Revert:
+    * debian/control.in/*: mirror existing Conflicts: of libc6 multilib packages
+      to libc6-dev multilib packages.
+    to be able to build cross compilers again.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 15 Mar 2025 12:14:49 +0100
+
+cross-toolchain-base (73+nmu1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Build using linux 6.12.17.
+  * Build using gcc 14.2.0-17.
+  * Build using glibc 2.41-4. Closes: #1099463.
+  * Build using binutils 2.44-3.
+  * Refresh glibc patches. Closes: #1092380.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 10 Mar 2025 21:59:31 +0100
+
+cross-toolchain-base (73) unstable; urgency=medium
+
+  * Build using linux 6.12.6.
+  * Build using gcc 14.2.0-12.
+  * Build using glibc 2.40-4. Closes: #1080341.
+  * Build using binutils 2.43.50.20241230-1.
+  * d/control: Add Rules-Requires-Root: binary-targets. Too late for trixie.
+    Closes: #1089876.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 31 Dec 2024 11:49:42 +0100
+
+cross-toolchain-base (72) unstable; urgency=medium
+
+  * Build using linux 6.11.2.
+  * Build using gcc 14.2.0-5.
+  * Build using glibc 2.40-3.
+  * Re-add the build conflicts on the linux-libc-dev-*-cross packages.
+
+ -- Matthias Klose <doko@debian.org>  Tue, 08 Oct 2024 11:53:50 +0200
+
+cross-toolchain-base (71) experimental; urgency=medium
+
+  * Build using linux 6.11.1.
+  * Build using glibc 2.40-2, refresh patches. Closes: #1081201.
+  * Build using binutils 2.43.1-5, using the pkg.binutils.nojava profile.
+  * Build using gcc 14.2.0-5.
+  * Update linux version number.
+  * Fix linker location for mips* o32 multilibs.
+  * Build armel packages from the ports package.
+  * Re-add glibc stage1 and gcc stage2 builds. On some architecture (s390x),
+    the configury depends on more than the stage1 build provides.
+  * Bump standards version.
+
+ -- Matthias Klose <doko@debian.org>  Sun, 22 Sep 2024 17:00:03 +0200
 
 cross-toolchain-base (70) unstable; urgency=medium
 

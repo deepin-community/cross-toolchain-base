@@ -1,6 +1,6 @@
 --- a/debian/rules
 +++ b/debian/rules
-@@ -147,10 +147,12 @@ else
+@@ -148,10 +148,12 @@ else
    else
      DEB_UDEB_PACKAGES = $(libc)-udeb
    endif
@@ -15,7 +15,7 @@
  # Generic kernel version check
 --- a/localedata/SUPPORTED
 +++ b/localedata/SUPPORTED
-@@ -1,512 +1,4 @@
+@@ -1,515 +1,4 @@
  # This file names the currently supported and somewhat tested locales.
  # If you have any additions please file a glibc bug report.
  SUPPORTED-LOCALES=\
@@ -96,7 +96,7 @@
 -bs_BA.UTF-8/UTF-8 \
 -bs_BA/ISO-8859-2 \
 -byn_ER/UTF-8 \
--C.UTF-8/UTF-8 \
+ C.UTF-8/UTF-8 \
 -ca_AD.UTF-8/UTF-8 \
 -ca_AD/ISO-8859-15 \
 -ca_ES.UTF-8/UTF-8 \
@@ -338,12 +338,14 @@
 -lo_LA/UTF-8 \
 -lt_LT.UTF-8/UTF-8 \
 -lt_LT/ISO-8859-13 \
+-ltg_LV.UTF-8/UTF-8 \
 -lv_LV.UTF-8/UTF-8 \
 -lv_LV/ISO-8859-13 \
 -lzh_TW/UTF-8 \
 -mag_IN/UTF-8 \
 -mai_IN/UTF-8 \
 -mai_NP/UTF-8 \
+-mdf_RU/UTF-8 \
 -mfe_MU/UTF-8 \
 -mg_MG.UTF-8/UTF-8 \
 -mg_MG/ISO-8859-15 \
@@ -420,6 +422,7 @@
 -sah_RU/UTF-8 \
 -sat_IN/UTF-8 \
 -sc_IT/UTF-8 \
+-scn_IT/UTF-8 \
 -sd_IN/UTF-8 \
 -sd_IN@devanagari/UTF-8 \
 -sd_PK/UTF-8 \
@@ -528,4 +531,3 @@
 -zh_TW/BIG5 \
 -zu_ZA.UTF-8/UTF-8 \
 -zu_ZA/ISO-8859-1 \
-+ C.UTF-8/UTF-8 \
