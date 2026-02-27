@@ -1,3 +1,9 @@
+cross-toolchain-base (79deepin2) unstable; urgency=medium
+
+  * add loong64 cross target
+
+ -- Chang Yang <yangchang@deepin.org>  Fri, 27 Feb 2026 10:48:32 +0800
+
 cross-toolchain-base (79deepin1) unstable; urgency=medium
 
   * change toolchain version to deepin baseline
